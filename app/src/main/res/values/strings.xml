@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">android_mapxbox_map</string>
+    <string name="mapbox_access_token">pk.eyJ1Ijoic29uZ2xpdWNoZW4iLCJhIjoiY2szZ3ZnN3o1MDVqODNkcXAya3pzNzcwcCJ9.ItdtOvRE6st27Z9kNJdIXg</string>
+</resources>
