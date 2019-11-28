@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             // Load data from GeoJSON file in the assets folder
             loadedMapStyle.addSource(new GeoJsonSource(GEOJSON_SOURCE_ID,
-                    new URI("asset://china.geojson")));
+                    new URI("asset://china.json")));
         } catch (Exception exception) {
             exception.printStackTrace();
         }
