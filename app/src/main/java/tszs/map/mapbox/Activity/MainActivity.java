@@ -2,6 +2,7 @@ package tszs.map.mapbox.activity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -12,14 +13,24 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.style.layers.CircleLayer;
+import com.mapbox.mapboxsdk.style.layers.FillLayer;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+
+import java.net.URI;
 
 import tszs.map.mapbox.R;
 import tszs.map.mapbox.tszs.map.mapbox.util.PermissionUtil;
 
-public class MainActivity extends AppCompatActivity
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback
 {
     private MapView mapView;
     int REQUEST_CONTACTS = 127;
+    private static final String GEOJSON_SOURCE_ID = "GEOJSONFILE";
     private  Bundle savedInstanceState;
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -77,19 +88,51 @@ public class MainActivity extends AppCompatActivity
 
         mapView = (MapView) findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(new OnMapReadyCallback() {
+        mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(@NonNull MapboxMap mapboxMap) {
+        mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
             @Override
-            public void onMapReady(@NonNull MapboxMap mapboxMap) {
-
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
-                    @Override
-                    public void onStyleLoaded(@NonNull Style style) {
-                    }
-                });
-
+            public void onStyleLoaded(@NonNull Style style) {
+                createGeoJsonSource(style);
+                addPolygonLayer(style);
+//                addPointsLayer(style);
             }
         });
     }
+
+    private void createGeoJsonSource(@NonNull Style loadedMapStyle) {
+        try {
+            // Load data from GeoJSON file in the assets folder
+            loadedMapStyle.addSource(new GeoJsonSource(GEOJSON_SOURCE_ID,
+                    new URI("asset://china.geojson")));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void addPolygonLayer(@NonNull Style loadedMapStyle) {
+        // Create and style a FillLayer that uses the Polygon Feature's coordinates in the GeoJSON data
+        FillLayer countryPolygonFillLayer = new FillLayer("polygon", GEOJSON_SOURCE_ID);
+        countryPolygonFillLayer.setProperties(
+                PropertyFactory.fillColor(Color.RED),
+                PropertyFactory.fillOpacity(.4f));
+        countryPolygonFillLayer.setFilter(eq(literal("$type"), literal("Polygon")));
+        loadedMapStyle.addLayer(countryPolygonFillLayer);
+    }
+
+    private void addPointsLayer(@NonNull Style loadedMapStyle) {
+        // Create and style a CircleLayer that uses the Point Features' coordinates in the GeoJSON data
+        CircleLayer individualCirclesLayer = new CircleLayer("points", GEOJSON_SOURCE_ID);
+        individualCirclesLayer.setProperties(
+                PropertyFactory.circleColor(Color.YELLOW),
+                PropertyFactory.circleRadius(3f));
+        individualCirclesLayer.setFilter(eq(literal("$type"), literal("Point")));
+        loadedMapStyle.addLayer(individualCirclesLayer);
+    }
+
 
     @Override
     protected void onStart() {
