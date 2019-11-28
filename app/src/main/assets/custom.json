@@ -42,7 +42,14 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "stroke": "#555555",
+        "stroke-width": 2,
+        "stroke-opacity": 1,
+        "fill": "#555555",
+        "fill-opacity": 0.5,
+        "名称": "山西"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -77,7 +84,14 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "stroke": "#555555",
+        "stroke-width": 2,
+        "stroke-opacity": 1,
+        "fill": "#555555",
+        "fill-opacity": 0.5,
+        "名称": "天津"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -291,7 +305,14 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "stroke": "#555555",
+        "stroke-width": 2,
+        "stroke-opacity": 1,
+        "fill": "#555555",
+        "fill-opacity": 0.5,
+        "名称": "测试1"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -322,7 +343,14 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "stroke": "#555555",
+        "stroke-width": 2,
+        "stroke-opacity": 1,
+        "fill": "#555555",
+        "fill-opacity": 0.5,
+        "名称": "测试2"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
