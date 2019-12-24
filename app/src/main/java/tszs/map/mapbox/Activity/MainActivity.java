@@ -7,16 +7,21 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.style.layers.CircleLayer;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.layers.RasterLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.mapbox.mapboxsdk.style.sources.RasterSource;
+import com.mapbox.mapboxsdk.style.sources.TileSet;
 
 import java.net.URI;
 
@@ -31,13 +36,77 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MapView mapView;
     int REQUEST_CONTACTS = 127;
     private static final String GEOJSON_SOURCE_ID = "GEOJSONFILE";
-    private  Bundle savedInstanceState;
+    MapboxMap mapboxMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        this.savedInstanceState = savedInstanceState;
 
+        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
+
+        setContentView(R.layout.activity_main);
+
+        mapView = (MapView) findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        if (requestCode == REQUEST_CONTACTS)
+        {
+            if (PermissionUtil.verifyPermissions(grantResults))
+            {
+                mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
+                    @Override
+                    public void onStyleLoaded(@NonNull Style style) {
+                        createGeoJsonSource(style);
+                        addPolygonLayer(style);
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onMapReady(@NonNull MapboxMap mapboxMap) {
+        this.mapboxMap = mapboxMap;
+
+        CameraPosition position = new CameraPosition.Builder()
+                .target(new LatLng( 31.15933273400013,118.28830779400002))
+                .zoom(18)
+                .build();
+        mapboxMap.setCameraPosition(position);
+    }
+
+    private void createGeoJsonSource(@NonNull Style loadedMapStyle) {
+        try {
+            // Load data from GeoJSON file in the assets folder
+            loadedMapStyle.addSource(new GeoJsonSource(GEOJSON_SOURCE_ID,
+                    new URI("asset://custom.json")));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void addPolygonLayer(@NonNull Style loadedMapStyle) {
+        FillLayer countryPolygonFillLayer = new FillLayer("polygon", GEOJSON_SOURCE_ID);
+        countryPolygonFillLayer.setProperties(
+                PropertyFactory.fillColor(Color.RED),
+                PropertyFactory.fillOpacity(.4f));
+        countryPolygonFillLayer.setFilter(eq(literal("$type"), literal("Polygon")));
+        loadedMapStyle.addLayer(countryPolygonFillLayer);
+    }
+
+
+    /**
+     * 加载Geojson数据
+     * @param v
+     */
+    public void loadGeoJsonData(View v)
+    {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED
@@ -64,73 +133,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         else
         {
-            init();
+            mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
+                @Override
+                public void onStyleLoaded(@NonNull Style style) {
+                    createGeoJsonSource(style);
+                    addPolygonLayer(style);
+                }
+            });
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    /**
+     * 加载WMS服务
+     * @param v
+     */
+    public void addWMSServer(View v)
     {
-        if (requestCode == REQUEST_CONTACTS)
+        mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded()
         {
-            if (PermissionUtil.verifyPermissions(grantResults))
-            {
-                init();
-            }
-        }
-    }
-
-    private void init()
-    {
-        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
-
-        setContentView(R.layout.activity_main);
-
-        mapView = (MapView) findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
-    }
-
-    @Override
-    public void onMapReady(@NonNull MapboxMap mapboxMap) {
-        mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
             @Override
-            public void onStyleLoaded(@NonNull Style style) {
-                createGeoJsonSource(style);
-                addPolygonLayer(style);
-//                addPointsLayer(style);
+            public void onStyleLoaded(@NonNull Style style)
+            {
+                style.addSource(new RasterSource("web-map-source", new TileSet("tileset", "http://129.211.11.95:8066/geoserver/njdn/wms?service=WMS&version=1.1.0&request=GetMap&layers=njdn%3Adk_4326&bbox=118.28830779400002%2C31.159332734000134%2C118.2945880627997%2C31.166442932892814&width=678&height=768&srs=EPSG%3A4326"), 256));
+                if (style.getLayer("tunnel-street-minor-low") != null)
+                {
+                    style.addLayerBelow(new RasterLayer("web-map-layer", "web-map-source"), "tunnel-street-minor-low");
+                }
+                else
+                {
+                    style.addLayer(new RasterLayer("web-map-layer", "web-map-source"));
+                }
             }
         });
-    }
-
-    private void createGeoJsonSource(@NonNull Style loadedMapStyle) {
-        try {
-            // Load data from GeoJSON file in the assets folder
-            loadedMapStyle.addSource(new GeoJsonSource(GEOJSON_SOURCE_ID,
-                    new URI("asset://custom.json")));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    private void addPolygonLayer(@NonNull Style loadedMapStyle) {
-        // Create and style a FillLayer that uses the Polygon Feature's coordinates in the GeoJSON data
-        FillLayer countryPolygonFillLayer = new FillLayer("polygon", GEOJSON_SOURCE_ID);
-        countryPolygonFillLayer.setProperties(
-                PropertyFactory.fillColor(Color.RED),
-                PropertyFactory.fillOpacity(.4f));
-        countryPolygonFillLayer.setFilter(eq(literal("$type"), literal("Polygon")));
-        loadedMapStyle.addLayer(countryPolygonFillLayer);
-    }
-
-    private void addPointsLayer(@NonNull Style loadedMapStyle) {
-        // Create and style a CircleLayer that uses the Point Features' coordinates in the GeoJSON data
-        CircleLayer individualCirclesLayer = new CircleLayer("points", GEOJSON_SOURCE_ID);
-        individualCirclesLayer.setProperties(
-                PropertyFactory.circleColor(Color.YELLOW),
-                PropertyFactory.circleRadius(3f));
-        individualCirclesLayer.setFilter(eq(literal("$type"), literal("Point")));
-        loadedMapStyle.addLayer(individualCirclesLayer);
     }
 
 

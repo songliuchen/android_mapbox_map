@@ -7,10 +7,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activity.MainActivity">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="loadGeoJsonData"
+            android:text="加载geojson"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="addWMSServer"
+            android:text="加载WMS"/>
+    </LinearLayout>
+
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
         mapbox:mapbox_cameraTargetLat="39.855500"
         mapbox:mapbox_cameraTargetLng="116.204593"
         mapbox:mapbox_cameraZoom="11"
