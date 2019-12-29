@@ -1,5 +1,5 @@
 ### 源码、示例地址
-1. mapbox android demo地址：https://github.com/mapbox/mapbox-android-demo
+1.mapbox android demo地址：https://github.com/mapbox/mapbox-android-demo
 
 
 ### 教程地址
