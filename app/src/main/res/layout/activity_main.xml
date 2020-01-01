@@ -20,6 +20,12 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:onClick="addShape"
+            android:text="加载Shape"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:onClick="addWMSServer"
             android:text="加载WMS"/>
     </LinearLayout>

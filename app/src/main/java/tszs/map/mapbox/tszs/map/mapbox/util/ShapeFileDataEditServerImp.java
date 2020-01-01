@@ -1,16 +1,5 @@
 package tszs.map.mapbox.tszs.map.mapbox.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.collection.ListFeatureCollection;
@@ -20,8 +9,10 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQL;
+import org.geotools.geojson.feature.FeatureJSON;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
@@ -36,10 +27,20 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ShapeFileDataEditServerImp {
     /**
      * 查询
-     *
      * @param where
      * @return
      */
@@ -68,6 +69,36 @@ public class ShapeFileDataEditServerImp {
             e.printStackTrace();
         }
         return features;
+    }
+
+    /**
+     * 查询
+     * @param where
+     * @return
+     */
+    public String queryFeature2(String shapeFile, String where) throws Exception {
+        ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+        List<SimpleFeature> features = new ArrayList<>();
+        try {
+            ShapefileDataStore sds = (ShapefileDataStore) dataStoreFactory
+                    .createDataStore(new File(shapeFile).toURI().toURL());
+            sds.setCharset(Charset.forName("GBK"));
+            SimpleFeatureSource featureSource = sds.getFeatureSource();
+
+            FeatureCollection featureCollection;
+            if (where != null && !where.trim().equals("")) {
+                Filter filter = CQL.toFilter(where);
+                featureCollection = featureSource.getFeatures(filter);
+            } else {
+                featureCollection = featureSource.getFeatures();
+            }
+            FeatureJSON featureJSON = new FeatureJSON();
+            String result = featureJSON.toString(featureCollection);
+            return  result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     /**
@@ -234,7 +265,6 @@ public class ShapeFileDataEditServerImp {
     public SimpleFeature updateFeature(String shapeFile, SimpleFeature row, Map<String, Object> paras) {
         return null;
     }
-
     /**
      * 删除
      *
