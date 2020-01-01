@@ -78,7 +78,6 @@ public class ShapeFileDataEditServerImp {
      */
     public String queryFeature2(String shapeFile, String where) throws Exception {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-        List<SimpleFeature> features = new ArrayList<>();
         try {
             ShapefileDataStore sds = (ShapefileDataStore) dataStoreFactory
                     .createDataStore(new File(shapeFile).toURI().toURL());
